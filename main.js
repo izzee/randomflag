@@ -7,8 +7,6 @@ import {
   PerspectiveCamera,
   Scene,
   CanvasTexture,
-  Texture,
-  TextureLoader,
   WebGLRenderer,
 } from 'three'
 
@@ -279,12 +277,12 @@ const loadImage = path => {
   })
 }
 
-const selectRandomIcon = async () => {
+const selectRandomIcon = () => {
   const randomPath =  icons[Math.floor(icons.length * Math.random())]
-  return await loadImage(randomPath)
+  return loadImage(randomPath)
 }
 
-const addIconsToCanvas = async () => {
+const addIconsToCanvas =  () => {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d');
   const randomImages = Array(4).fill()
@@ -314,7 +312,7 @@ const addIconsToCanvas = async () => {
   }) 
   return ctx.canvas
 }
-const randomCanvas = await addIconsToCanvas()
+const randomCanvas = addIconsToCanvas()
 
 const scene = new Scene()
 const camera = new PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 5000)
