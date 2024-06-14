@@ -380,8 +380,10 @@ scene.add(flag)
 flag.rotation.y= Math.PI / 2
 
 function animate() {
+  material.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
+
   if (flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .01
+    flag.rotation.y += .005
   } else {
     composeCanvas()
     flag.rotation.y = Math.PI / 2
