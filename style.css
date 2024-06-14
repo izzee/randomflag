@@ -6,3 +6,7 @@
 body {
   background: linear-gradient(FloralWhite, DodgerBlue);
 }
+
+canvas#source {
+  display: none;
+}

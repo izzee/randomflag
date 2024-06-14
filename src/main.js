@@ -1,15 +1,22 @@
 import {
-  AmbientLight,
+  Clock,
   PlaneGeometry,
   DoubleSide,
   Mesh,
-  MeshBasicMaterial,
   PerspectiveCamera,
   Scene,
+  ShaderMaterial,
   CanvasTexture,
   WebGLRenderer,
 } from 'three'
 
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import vertexShader from './shaders/waveWarpVertexShader.glsl';
+import fragmentShader from './shaders/waveWarpFragmentShader.glsl';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// Compose random flag
 const icons = [
   "icons/Adore-icon.png",
   "icons/alert-icon.png",
@@ -114,7 +121,6 @@ const icons = [
   "icons/You-like-my-teeths-icon.png",
   "icons/You-make-me-hurt-icon.png"
 ]
-
 const colors = [
 "AliceBlue",
 "AntiqueWhite",
@@ -258,6 +264,15 @@ const colors = [
 "Yellow",
 "YellowGreen",
 ]
+const slogans = [
+  'BOTTOM TEXT',
+  'KEEP BACK',
+  'FITNESS',
+  'P.L.U.R',
+  'FMLMAO',
+  'VIVE SIN DROGAS',
+  'BOOOOOOOO',
+]
 
 const randomColor = () => {
   return colors[Math.floor(Math.random()*colors.length)]
@@ -270,6 +285,9 @@ const loadImage = path => {
     img.src = path
     img.onload = () => {
       resolve(img)
+      texture.needsUpdate = true;
+      img.onload = () => {
+    };
     }
     img.onerror = e => {
       reject(e)
@@ -282,14 +300,21 @@ const selectRandomIcon = () => {
   return loadImage(randomPath)
 }
 
-const addIconsToCanvas =  () => {
-  const canvas = document.createElement('canvas')
+const composeCanvas =  () => {
+  let canvas
+  const source = document.querySelector('canvas#source')
+  if (source) {
+    canvas = source
+  } else {
+    canvas = document.createElement('canvas')
+    canvas.setAttribute("id", "source");
+  }
   const ctx = canvas.getContext('2d');
-  const randomImages = Array(4).fill()
-  ctx.canvas.width = 500;
-  ctx.canvas.height = 300;
+  const randomImages = Array(3).fill()
+  ctx.canvas.width = 300;
+  ctx.canvas.height = 500;
   
-  const grad=ctx.createLinearGradient(0,0, 500,0);
+  const grad=ctx.createLinearGradient(0,0, 300,0);
   const gradientStops = [
     Math.random(),
     Math.random(),
@@ -304,50 +329,66 @@ const addIconsToCanvas =  () => {
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   randomImages.forEach(async () => {
     const randomImage = await selectRandomIcon() 
-    const imageWidth = Math.random() * 100
-    ctx.drawImage(randomImage, (Math.random() * 400 ), (Math.random() * 200), 100, 100)
-    if (flag) {
-      flag.material.map.needsUpdate = true
-    }
+    ctx.drawImage(randomImage, (Math.random() * 200 ), (Math.random() * 400), 100, 100)
   }) 
+  document.body.appendChild(ctx.canvas)
   return ctx.canvas
 }
-const randomCanvas = addIconsToCanvas()
 
+// Set up scene
+const clock = new Clock()
 const scene = new Scene()
-const camera = new PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 5000)
+const camera = new PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 2000)
 const renderer = new WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setClearColor(0xff0000, 0) 
 document.body.appendChild(renderer.domElement)
 
-const ambientLight = new AmbientLight(0x777777)
-scene.add(ambientLight)
+camera.position.z = 500
 
-const texture = new CanvasTexture(randomCanvas);
+// Post-Processing
+const composer = new EffectComposer(renderer)
+
+const renderPass = new RenderPass(scene, camera)
+composer.addPass(renderPass)
+
+const outputPass = new OutputPass()
+composer.addPass(outputPass)
+
+// Set up geometry
+const geometry = new PlaneGeometry(300, 500, 50, 50);
+// Create a custom shader material
+const texture = new CanvasTexture(composeCanvas());
 texture.needsUpdate = true
-
-
-const geometry = new PlaneGeometry( 500, 300 );
-
-const material = new MeshBasicMaterial({
-  color: 0xffffff,
+const material = new ShaderMaterial({
+  uniforms: {
+    time: { value: 0.0 },
+    amplitude: { value: 15.0 },
+    frequency: { value: 5.0 },
+    speed: { value: 5.0 },
+    uTexture: { value: texture},
+  },
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader,
   side: DoubleSide,
-  map: texture,
-})
-
+});
 const flag = new Mesh(geometry, material)
 scene.add(flag)
 
-camera.position.z = 500
-flag.rotation.set(-0.1, 0, 0)
+flag.rotation.y = Math.PI / 2
 
 function animate() {
-  flag.rotation.y += 0.01
+  if (flag.rotation.y <= Math.PI * 1.5) {
+    flag.rotation.y += .005
+  } else {
+    console.log('reset')
+    composeCanvas()
+    flag.rotation.y = Math.PI / 2
+  }
+  material.uniforms.time.value = clock.getElapsedTime()
   requestAnimationFrame(animate)
-  renderer.render(scene, camera)
-  flag.material.map = texture
+  composer.render()
 }
 
 animate()
