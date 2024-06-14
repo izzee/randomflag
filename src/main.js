@@ -383,7 +383,7 @@ function animate() {
   material.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
 
   if (flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .005
+    flag.rotation.y += .0005
   } else {
     composeCanvas()
     flag.rotation.y = Math.PI / 2
