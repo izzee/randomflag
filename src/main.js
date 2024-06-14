@@ -274,10 +274,14 @@ const slogans = [
   'BOOOOOOOO',
 ]
 
-const randomColor = () => {
-  return colors[Math.floor(Math.random()*colors.length)]
+const selectRandom = (arr) => {
+  return arr[Math.floor(Math.random()*arr.length)]
 }
 
+const selectRandomIcon = () => {
+  const randomPath = selectRandom(icons)
+  return loadImage(randomPath)
+}
 const loadImage = path => {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -295,10 +299,6 @@ const loadImage = path => {
   })
 }
 
-const selectRandomIcon = () => {
-  const randomPath =  icons[Math.floor(icons.length * Math.random())]
-  return loadImage(randomPath)
-}
 
 const composeCanvas =  () => {
   let canvas
@@ -311,26 +311,27 @@ const composeCanvas =  () => {
   }
   const ctx = canvas.getContext('2d');
   const randomImages = Array(3).fill()
-  ctx.canvas.width = 300;
-  ctx.canvas.height = 500;
-  
-  const grad=ctx.createLinearGradient(0,0, 300,0);
+  ctx.canvas.width = 500;
+  ctx.canvas.height = 300;
+  const grad=ctx.createLinearGradient(0,0, 500,0);
   const gradientStops = [
     Math.random(),
     Math.random(),
     Math.random(),
     Math.random(),
   ].sort()
-  grad.addColorStop(0, randomColor());
-  grad.addColorStop(gradientStops[0], randomColor()); 
-  grad.addColorStop(gradientStops[1], randomColor()); 
-  grad.addColorStop(gradientStops[2], randomColor()); 
+  grad.addColorStop(0, selectRandom(colors));
+  grad.addColorStop(gradientStops[0], selectRandom(colors)); 
+  grad.addColorStop(gradientStops[1], selectRandom(colors)); 
+  grad.addColorStop(gradientStops[2], selectRandom(colors)); 
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
   randomImages.forEach(async () => {
-    const randomImage = await selectRandomIcon() 
-    ctx.drawImage(randomImage, (Math.random() * 200 ), (Math.random() * 400), 100, 100)
+    const randomImage = await selectRandomIcon()
+    ctx.drawImage(randomImage, (Math.random() * 400 ), (Math.random() * 200), 100, 100)
   }) 
+
   document.body.appendChild(ctx.canvas)
   return ctx.canvas
 }
@@ -357,14 +358,14 @@ const outputPass = new OutputPass()
 composer.addPass(outputPass)
 
 // Set up geometry
-const geometry = new PlaneGeometry(300, 500, 50, 50);
+const geometry = new PlaneGeometry(500, 300, 50, 50);
 // Create a custom shader material
 const texture = new CanvasTexture(composeCanvas());
 texture.needsUpdate = true
 const material = new ShaderMaterial({
   uniforms: {
     time: { value: 0.0 },
-    amplitude: { value: 15.0 },
+    amplitude: { value: 20.0 },
     frequency: { value: 5.0 },
     speed: { value: 5.0 },
     uTexture: { value: texture},
@@ -379,11 +380,9 @@ scene.add(flag)
 flag.rotation.y= Math.PI / 2
 
 function animate() {
-  if (flag.rotation.y<= Math.PI * 1.5) {
-    flag.rotation.y+= .01
-
+  if (flag.rotation.y <= Math.PI * 1.5) {
+    flag.rotation.y += .01
   } else {
-    console.log('reset')
     composeCanvas()
     flag.rotation.y = Math.PI / 2
   }
