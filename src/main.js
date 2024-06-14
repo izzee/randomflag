@@ -376,11 +376,12 @@ const material = new ShaderMaterial({
 const flag = new Mesh(geometry, material)
 scene.add(flag)
 
-flag.rotation.y = Math.PI / 2
+flag.rotation.y= Math.PI / 2
 
 function animate() {
-  if (flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .005
+  if (flag.rotation.y<= Math.PI * 1.5) {
+    flag.rotation.y+= .01
+
   } else {
     console.log('reset')
     composeCanvas()
