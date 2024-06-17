@@ -1,6 +1,7 @@
 import {
   Clock,
   PlaneGeometry,
+  BoxGeometry,
   DoubleSide,
   Mesh,
   PerspectiveCamera,
@@ -15,6 +16,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import vertexShader from './shaders/waveWarpVertexShader.glsl';
 import fragmentShader from './shaders/waveWarpFragmentShader.glsl';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const width = 500
+const height = 300
 
 // Compose random flag
 const icons = [
@@ -329,10 +333,7 @@ const createFlagBackdrop = (ctx) => {
   ctx.fillRect(0, 0, width, height);
 }
 
-
 const composeCanvas = () => {
-  const width = 500
-  const height = 300
   const iconSize = 100
   let canvas
   const source = document.querySelector('canvas#source')
@@ -358,6 +359,7 @@ const composeCanvas = () => {
   ctx.fillStyle = selectRandom(colors)
   ctx.fillText(selectRandom(slogans), (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
   document.body.appendChild(ctx.canvas)
+
   return ctx.canvas
 }
 
@@ -384,7 +386,7 @@ const outputPass = new OutputPass()
 composer.addPass(outputPass)
 
 // Set up geometry
-const geometry = new PlaneGeometry(500, 300, 50, 50);
+const geometry = new BoxGeometry(width, height, 1, 50, 50);
 // Create a custom shader material
 const texture = new CanvasTexture(composeCanvas());
 texture.needsUpdate = true
@@ -398,22 +400,21 @@ const material = new ShaderMaterial({
   },
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
-  side: DoubleSide,
 });
+
 const flag = new Mesh(geometry, material)
 scene.add(flag)
 
-flag.rotation.y = 0
-
 function animate() {
+  material.uniforms.uTexture.needsUpdate = true
+  material.uniforms.time.value = clock.getElapsedTime()
   material.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
   if(flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .0025
+    flag.rotation.y += .02
   } else {
     flag.rotation.y = Math.PI / -2
     composeCanvas()
   }
-  material.uniforms.time.value = clock.getElapsedTime()
   requestAnimationFrame(animate)
   composer.render()
 }
