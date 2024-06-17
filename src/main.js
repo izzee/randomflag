@@ -316,7 +316,6 @@ const createFlagBackdrop = (ctx) => {
   }
   gradientArray.sort(stop => stop.position)
   const {width, height} = ctx.canvas
-  console.log(width, height)
   let grad
   if (template === 'horizontal') {
     grad=ctx.createLinearGradient(0, 0, 0, width);
@@ -327,7 +326,7 @@ const createFlagBackdrop = (ctx) => {
     grad.addColorStop(step.position, step.color)
   })
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.fillRect(0, 0, width, height);
 }
 
 
@@ -353,7 +352,6 @@ const composeCanvas = () => {
   })  
   createFlagBackdrop(ctx)
   ctx.font = `40px Impact`
-  console.log(ctx.font)
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillColor = selectRandom(colors)
