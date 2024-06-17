@@ -299,7 +299,9 @@ const loadImage = path => {
     img.src = path
     img.onload = () => {
       resolve(img)
-      texture.needsUpdate = true;
+      material.forEach(side => {
+        side.uniforms.uTexture.value.needsUpdate = true;
+      })
       img.onload = () => {
     };
     }
@@ -357,13 +359,42 @@ const composeCanvas = () => {
   ctx.textBaseline = 'middle';
   ctx.fillColor = selectRandom(colors)
   ctx.fillStyle = selectRandom(colors)
-  ctx.fillText(selectRandom(slogans), (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
+  ctx.fillText('side1', (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
   document.body.appendChild(ctx.canvas)
 
   return ctx.canvas
 }
 
-document.body.addEventListener('click', composeCanvas)
+const composeCanvas2 = () => {
+  const iconSize = 100
+  let canvas
+  const source = document.querySelector('canvas#source2')
+  if (source) {
+    canvas = source
+  } else {
+    canvas = document.createElement('canvas')
+    canvas.setAttribute("id", "source2")
+  }
+  const ctx = canvas.getContext('2d');
+  const randomImages = Array(3).fill()
+  ctx.canvas.width = width
+  ctx.canvas.height = height
+  randomImages.forEach(async () => {
+    const randomImage = await selectRandomIcon()
+    ctx.drawImage(randomImage, Math.random() * (width - iconSize), Math.random() * (height-iconSize), iconSize, iconSize)
+  })  
+  createFlagBackdrop(ctx)
+  ctx.font = `40px Impact`
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillColor = selectRandom(colors)
+  ctx.fillStyle = selectRandom(colors)
+  ctx.fillText('side2', (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
+  document.body.appendChild(ctx.canvas)
+
+  return ctx.canvas
+}
+
 // Set up scene
 const clock = new Clock()
 const scene = new Scene()
@@ -388,33 +419,61 @@ composer.addPass(outputPass)
 // Set up geometry
 const geometry = new BoxGeometry(width, height, 1, 50, 50);
 // Create a custom shader material
-const texture = new CanvasTexture(composeCanvas());
+
+let texture = new CanvasTexture(composeCanvas());
 texture.needsUpdate = true
-const material = new ShaderMaterial({
-  uniforms: {
-    time: { value: 0.0 },
-    amplitude: { value: 20.0 },
-    frequency: { value: 5.0 },
-    speed: { value: 5.0 },
-    uTexture: { value: texture},
-  },
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-});
+
+const material  = [0,1,2,3,4,5].map((side, index) => {
+  if (side === 4) {
+    texture = new CanvasTexture(composeCanvas2());
+  } else {
+    texture = new CanvasTexture(composeCanvas());
+  }
+  return new ShaderMaterial({
+    uniforms: {
+      time: { value: 0.0 },
+      amplitude: { value: 20.0 },
+      frequency: { value: 5.0 },
+      speed: { value: 5.0 },
+      uTexture: { value: texture},
+    },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+  });
+})
 
 const flag = new Mesh(geometry, material)
 scene.add(flag)
 
+flag.rotation.y = Math.PI / -2
+
+
+let lastSide = 1
 function animate() {
-  material.uniforms.uTexture.needsUpdate = true
-  material.uniforms.time.value = clock.getElapsedTime()
-  material.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
+  if (Math.round(flag.rotation.y * 10) === -10 && lastSide === 2) {
+    composeCanvas()
+    lastSide = 1
+  } 
+
+  if ( Math.round(flag.rotation.y * 10) === 20 && lastSide === 1) {
+    composeCanvas2()
+    console.log(material[4])
+    lastSide = 2
+  }
+
   if(flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .02
+    flag.rotation.y += .01
   } else {
     flag.rotation.y = Math.PI / -2
-    composeCanvas()
   }
+
+  material.forEach(side => {
+    side.uniforms.uTexture.needsUpdate = true
+    side.uniforms.time.value = clock.getElapsedTime()
+    side.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
+  })
+
+  
   requestAnimationFrame(animate)
   composer.render()
 }

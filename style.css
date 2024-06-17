@@ -8,5 +8,11 @@ body {
 }
 
 canvas#source {
+ display: none;
+}
+
+
+canvas#source2 {
   display: none;
+
 }
