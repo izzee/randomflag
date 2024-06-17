@@ -437,11 +437,6 @@ function animate() {
     flag.rotation.y = Math.PI / -2
   }
 
-  if (camera.position.z > 400 ) {
-    camera.position.z -= 0.01
-  } else {
-    camera.position.z += 0.01
-  }
   material.forEach(side => {
     side.uniforms.uTexture.needsUpdate = true
     side.uniforms.time.value = clock.getElapsedTime()
