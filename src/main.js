@@ -335,15 +335,16 @@ const createFlagBackdrop = (ctx) => {
   ctx.fillRect(0, 0, width, height);
 }
 
-const composeCanvas = () => {
+
+const composeCanvas = (id) => {
   const iconSize = 100
   let canvas
-  const source = document.querySelector('canvas#source')
+  const source = document.querySelector(`canvas#${id}`)
   if (source) {
     canvas = source
   } else {
     canvas = document.createElement('canvas')
-    canvas.setAttribute("id", "source")
+    canvas.setAttribute("id", id)
   }
   const ctx = canvas.getContext('2d');
   const randomImages = Array(3).fill()
@@ -359,41 +360,11 @@ const composeCanvas = () => {
   ctx.textBaseline = 'middle';
   ctx.fillColor = selectRandom(colors)
   ctx.fillStyle = selectRandom(colors)
-  ctx.fillText('side1', (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
+  ctx.fillText(selectRandom(slogans), (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
   document.body.appendChild(ctx.canvas)
-
   return ctx.canvas
 }
 
-const composeCanvas2 = () => {
-  const iconSize = 100
-  let canvas
-  const source = document.querySelector('canvas#source2')
-  if (source) {
-    canvas = source
-  } else {
-    canvas = document.createElement('canvas')
-    canvas.setAttribute("id", "source2")
-  }
-  const ctx = canvas.getContext('2d');
-  const randomImages = Array(3).fill()
-  ctx.canvas.width = width
-  ctx.canvas.height = height
-  randomImages.forEach(async () => {
-    const randomImage = await selectRandomIcon()
-    ctx.drawImage(randomImage, Math.random() * (width - iconSize), Math.random() * (height-iconSize), iconSize, iconSize)
-  })  
-  createFlagBackdrop(ctx)
-  ctx.font = `40px Impact`
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillColor = selectRandom(colors)
-  ctx.fillStyle = selectRandom(colors)
-  ctx.fillText('side2', (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
-  document.body.appendChild(ctx.canvas)
-
-  return ctx.canvas
-}
 
 // Set up scene
 const clock = new Clock()
@@ -420,15 +391,16 @@ composer.addPass(outputPass)
 const geometry = new BoxGeometry(width, height, 1, 50, 50);
 // Create a custom shader material
 
-let texture = new CanvasTexture(composeCanvas());
-texture.needsUpdate = true
 
 const material  = [0,1,2,3,4,5].map((side, index) => {
+  let texture
   if (side === 4) {
-    texture = new CanvasTexture(composeCanvas2());
+    texture = new CanvasTexture(composeCanvas('canvas1'));
   } else {
-    texture = new CanvasTexture(composeCanvas());
+    texture = new CanvasTexture(composeCanvas('canvas2'));
   }
+  texture.needsUpdate = true
+
   return new ShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
@@ -450,15 +422,13 @@ flag.rotation.y = Math.PI / -2
 
 let lastSide = 1
 function animate() {
-  if (Math.round(flag.rotation.y * 10) === -10 && lastSide === 2) {
-    composeCanvas()
-    lastSide = 1
-  } 
-
-  if ( Math.round(flag.rotation.y * 10) === 20 && lastSide === 1) {
-    composeCanvas2()
-    console.log(material[4])
+  if (Math.round(flag.rotation.y * 10) === -10 && lastSide === 1) {
+    composeCanvas('canvas2')
     lastSide = 2
+  } 
+  if ( Math.round(flag.rotation.y * 10) === 20 && lastSide === 2) {
+    composeCanvas('canvas1')
+    lastSide = 1
   }
 
   if(flag.rotation.y <= Math.PI * 1.5) {
@@ -467,13 +437,17 @@ function animate() {
     flag.rotation.y = Math.PI / -2
   }
 
+  if (camera.position.z > 400 ) {
+    camera.position.z -= 0.01
+  } else {
+    camera.position.z += 0.01
+  }
   material.forEach(side => {
     side.uniforms.uTexture.needsUpdate = true
     side.uniforms.time.value = clock.getElapsedTime()
     side.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
   })
 
-  
   requestAnimationFrame(animate)
   composer.render()
 }

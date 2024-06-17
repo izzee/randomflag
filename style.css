@@ -7,12 +7,7 @@ body {
   background: linear-gradient(FloralWhite, DodgerBlue);
 }
 
-canvas#source {
- display: none;
-}
-
-
-canvas#source2 {
+#canvas1,
+#canvas2 {
   display: none;
-
 }
