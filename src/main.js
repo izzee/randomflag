@@ -267,11 +267,17 @@ const colors = [
 const slogans = [
   'BOTTOM TEXT',
   'KEEP BACK',
-  'FITNESS',
   'P.L.U.R',
   'FMLMAO',
   'VIVE SIN DROGAS',
-  'BOOOOOOOO',
+  'BOOOOOOOOOOOOOOOOO',
+  'HACKERS OF THE WORLD UNITE',
+  'S2S2S2S2S2S2S2S2S2S2S2',
+  '#RANDOM',
+  'NEVER GRADUATE',
+  'I LOVE YOU',
+  'RANDOMFLAG.NETLIFY.APP',
+  'ICONIC'
 ]
 
 const selectRandom = (arr) => {
@@ -298,44 +304,66 @@ const loadImage = path => {
     }
   })
 }
+const createFlagBackdrop = (ctx) => {
+  const template = selectRandom(['vertical', 'horizontal'])
+  const arrayLength = Math.round(Math.random() * 5) + 3
+  const gradientArray = []
+  for (let i = 0; i<= arrayLength; i++) {
+    gradientArray.push({
+      position: Math.random(),
+      color: selectRandom(colors)
+    })
+  }
+  gradientArray.sort(stop => stop.position)
+  const {width, height} = ctx.canvas
+  console.log(width, height)
+  let grad
+  if (template === 'horizontal') {
+    grad=ctx.createLinearGradient(0, 0, 0, width);
+  } else if (template === 'vertical') {
+    grad=ctx.createLinearGradient(0, 0, width,0);
+  }
+  gradientArray.forEach(step => {
+    grad.addColorStop(step.position, step.color)
+  })
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
 
 
-const composeCanvas =  () => {
+const composeCanvas = () => {
+  const width = 500
+  const height = 300
+  const iconSize = 100
   let canvas
   const source = document.querySelector('canvas#source')
   if (source) {
     canvas = source
   } else {
     canvas = document.createElement('canvas')
-    canvas.setAttribute("id", "source");
+    canvas.setAttribute("id", "source")
   }
   const ctx = canvas.getContext('2d');
   const randomImages = Array(3).fill()
-  ctx.canvas.width = 500;
-  ctx.canvas.height = 300;
-  const grad=ctx.createLinearGradient(0,0, 500,0);
-  const gradientStops = [
-    Math.random(),
-    Math.random(),
-    Math.random(),
-    Math.random(),
-  ].sort()
-  grad.addColorStop(0, selectRandom(colors));
-  grad.addColorStop(gradientStops[0], selectRandom(colors)); 
-  grad.addColorStop(gradientStops[1], selectRandom(colors)); 
-  grad.addColorStop(gradientStops[2], selectRandom(colors)); 
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
+  ctx.canvas.width = width
+  ctx.canvas.height = height
   randomImages.forEach(async () => {
     const randomImage = await selectRandomIcon()
-    ctx.drawImage(randomImage, (Math.random() * 400 ), (Math.random() * 200), 100, 100)
-  }) 
-
+    ctx.drawImage(randomImage, Math.random() * (width - iconSize), Math.random() * (height-iconSize), iconSize, iconSize)
+  })  
+  createFlagBackdrop(ctx)
+  ctx.font = `40px Impact`
+  console.log(ctx.font)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillColor = selectRandom(colors)
+  ctx.fillStyle = selectRandom(colors)
+  ctx.fillText(selectRandom(slogans), (width/2), Math.max((Math.round(Math.random()) * (height - 20)),30));
   document.body.appendChild(ctx.canvas)
   return ctx.canvas
 }
 
+document.body.addEventListener('click', composeCanvas)
 // Set up scene
 const clock = new Clock()
 const scene = new Scene()
@@ -377,16 +405,15 @@ const material = new ShaderMaterial({
 const flag = new Mesh(geometry, material)
 scene.add(flag)
 
-flag.rotation.y= Math.PI / 2
+flag.rotation.y = 0
 
 function animate() {
   material.uniforms.amplitude.value = (Math.sin(flag.rotation.y - Math.PI / 2) * 50)
-
-  if (flag.rotation.y <= Math.PI * 1.5) {
-    flag.rotation.y += .0005
+  if(flag.rotation.y <= Math.PI * 1.5) {
+    flag.rotation.y += .005
   } else {
+    flag.rotation.y = Math.PI / -2
     composeCanvas()
-    flag.rotation.y = Math.PI / 2
   }
   material.uniforms.time.value = clock.getElapsedTime()
   requestAnimationFrame(animate)
