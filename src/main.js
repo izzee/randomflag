@@ -121,7 +121,23 @@ const icons = [
   "icons/Wing-Duck-icon.png",
   "icons/Wing-Heart-icon.png",
   "icons/You-like-my-teeths-icon.png",
-  "icons/You-make-me-hurt-icon.png"
+  "icons/You-make-me-hurt-icon.png",
+  "icons/11-eye-icon.png",
+  "icons/checkered-flag-icon.png",
+  "icons/Glasses-icon.png",
+  "icons/Map-Marker-Chequered-Flag-Left-Chartreuse-icon.png",
+  "icons/Map-Marker-Flag-1-Left-Pink-icon.png",
+  "icons/Map-Marker-Flag-3-Left-Chartreuse-icon.png",
+  "icons/Painting-icon.png",
+  "icons/Photography-icon.png",
+  "icons/Pigs-Tail-icon.png",
+  "icons/shy-ghost-icon.png",
+  "icons/SkinArt-icon.png",
+  "icons/sony-handycam-icon.png"
+
+
+
+
 ]
 const colors = [
 "AliceBlue",
@@ -279,6 +295,7 @@ const slogans = [
   'NEVER GRADUATE',
   'I LOVE YOU',
   'RANDOMFLAG.NETLIFY.APP',
+  'BoxGeometry(width, height, 1, 50, 50);'
 ]
 
 const selectRandom = (arr) => {
